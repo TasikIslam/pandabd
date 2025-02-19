@@ -4,9 +4,6 @@ const login = require("ws3-fca");
 
 // নতুন API URL (Localhost)
 const API_URL = "http://tasikofficial.com/tasikai.php?q=";
-const ADMIN_UID = "100043708143528"; // শুধুমাত্র এই UID-এর জন্য /pause ও /start কার্যকর হবে
-
-let botActive = true; // ডিফল্টভাবে বট চালু থাকবে
 
 // AI থেকে উত্তর আনার ফাংশন
 async function getAIResponse(userQuestion) {
@@ -36,21 +33,6 @@ login({ appState: JSON.parse(fs.readFileSync('appstate.json', 'utf8')) }, (err, 
         });
 
         if (event.type === "message") {
-            // শুধুমাত্র অ্যাডমিন `/pause` এবং `/start` কমান্ড দিতে পারবে
-            if (event.senderID === ADMIN_UID) {
-                if (event.body === "/pause") {
-                    botActive = false;
-                    return api.sendMessage("🤖 বট এখন **Pause** মোডে রয়েছে!", event.threadID, event.messageID);
-                }
-                if (event.body === "/start") {
-                    botActive = true;
-                    return api.sendMessage("🤖 বট আবার **Start** হলো!", event.threadID, event.messageID);
-                }
-            }
-
-            // যদি বট বন্ধ থাকে, তাহলে আর কোনো মেসেজের উত্তর দেবে না
-            if (!botActive) return;
-
             // ইউজারের মেসেজের রিপ্লাই হিসেবে উত্তর পাঠানো
             (async () => {
                 try {
