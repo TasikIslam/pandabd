@@ -1,8 +1,8 @@
 const fs = require("fs");
-const axios = require("axios");
 const login = require("ws3-fca");
+const axios = require("axios");
 
-// নতুন API URL (Localhost)
+// নতুন API URL
 const API_URL = "http://tasikofficial.com/tasikai.php?q=";
 
 // AI থেকে উত্তর আনার ফাংশন
@@ -32,23 +32,28 @@ login({ appState: JSON.parse(fs.readFileSync('appstate.json', 'utf8')) }, (err, 
             if (err) console.error("Mark as Read Error:", err);
         });
 
-        if (event.type === "message") {
-            // ইউজারের মেসেজের রিপ্লাই হিসেবে উত্তর পাঠানো
-            (async () => {
-                try {
-                    const aiResponse = await getAIResponse(event.body);
-                    api.sendMessage(
-                        {
-                            body: aiResponse,
-                            replyToMessage: event.messageID // আগের মেসেজের রিপ্লাই হিসেবে পাঠাবে
-                        },
-                        event.threadID
-                    );
-                } catch (error) {
-                    console.error("Error in AI Response:", error);
-                    api.sendMessage("দুঃখিত, আমি এখন উত্তর দিতে পারছি না।", event.threadID);
+        switch (event.type) {
+            case "message":
+                if (event.body === "/stop") {
+                    api.sendMessage("Goodbye…", event.threadID);
+                    return stopListening();
                 }
-            })();
+
+                // ইউজারের মেসেজের রিপ্লাই হিসেবে উত্তর পাঠানো
+                (async () => {
+                    try {
+                        const aiResponse = await getAIResponse(event.body);
+                        api.sendMessage(aiResponse, event.threadID);
+                    } catch (error) {
+                        console.error("Error in AI Response:", error);
+                        api.sendMessage("দুঃখিত, আমি এখন উত্তর দিতে পারছি না।", event.threadID);
+                    }
+                })();
+                break;
+
+            case "event":
+                console.log(event);
+                break;
         }
     });
 });
