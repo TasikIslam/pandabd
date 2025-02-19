@@ -31,45 +31,42 @@ login({ appState: JSON.parse(fs.readFileSync('appstate.json', 'utf8')) }, (err, 
             return;
         }
 
-        try {
-            api.markAsRead(event.threadID, (err) => {
-                if (err) console.error("Mark as Read Error:", err);
-            });
+        api.markAsRead(event.threadID, (err) => {
+            if (err) console.error("Mark as Read Error:", err);
+        });
 
-            if (event.type === "message") {
-                // শুধুমাত্র অ্যাডমিন `/pause` এবং `/start` কমান্ড দিতে পারবে
-                if (event.senderID === ADMIN_UID) {
-                    if (event.body === "/pause") {
-                        botActive = false;
-                        return api.sendMessage("🤖 বট এখন **Pause** মোডে রয়েছে!", event.threadID, event.messageID);
-                    }
-                    if (event.body === "/start") {
-                        botActive = true;
-                        return api.sendMessage("🤖 বট আবার **Start** হলো!", event.threadID, event.messageID);
-                    }
+        if (event.type === "message") {
+            // শুধুমাত্র অ্যাডমিন `/pause` এবং `/start` কমান্ড দিতে পারবে
+            if (event.senderID === ADMIN_UID) {
+                if (event.body === "/pause") {
+                    botActive = false;
+                    return api.sendMessage("🤖 বট এখন **Pause** মোডে রয়েছে!", event.threadID, event.messageID);
                 }
-
-                // যদি বট বন্ধ থাকে, তাহলে আর কোনো মেসেজের উত্তর দেবে না
-                if (!botActive) return;
-
-                // ইউজারের মেসেজের রিপ্লাই হিসেবে উত্তর পাঠানো
-                getAIResponse(event.body)
-                    .then(aiResponse => {
-                        api.sendMessage(
-                            {
-                                body: aiResponse,
-                                replyToMessage: event.messageID // আগের মেসেজের রিপ্লাই হিসেবে পাঠাবে
-                            },
-                            event.threadID
-                        );
-                    })
-                    .catch(error => {
-                        console.error("Error in AI Response:", error);
-                        api.sendMessage("দুঃখিত, আমি এখন উত্তর দিতে পারছি না।", event.threadID);
-                    });
+                if (event.body === "/start") {
+                    botActive = true;
+                    return api.sendMessage("🤖 বট আবার **Start** হলো!", event.threadID, event.messageID);
+                }
             }
-        } catch (error) {
-            console.error("Error processing event:", error);
+
+            // যদি বট বন্ধ থাকে, তাহলে আর কোনো মেসেজের উত্তর দেবে না
+            if (!botActive) return;
+
+            // ইউজারের মেসেজের রিপ্লাই হিসেবে উত্তর পাঠানো
+            (async () => {
+                try {
+                    const aiResponse = await getAIResponse(event.body);
+                    api.sendMessage(
+                        {
+                            body: aiResponse,
+                            replyToMessage: event.messageID // আগের মেসেজের রিপ্লাই হিসেবে পাঠাবে
+                        },
+                        event.threadID
+                    );
+                } catch (error) {
+                    console.error("Error in AI Response:", error);
+                    api.sendMessage("দুঃখিত, আমি এখন উত্তর দিতে পারছি না।", event.threadID);
+                }
+            })();
         }
     });
 });
