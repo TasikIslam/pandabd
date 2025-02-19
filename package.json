@@ -9,6 +9,7 @@
   "dependencies": {
     "ws3-fca": "latest",
     "axios": "^1.5.0",
-    "fs": "latest"
+    "fs": "latest",
+    "npmlog": "latest"
   }
 }
