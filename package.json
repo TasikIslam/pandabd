@@ -1,0 +1,14 @@
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "description": "A simple Node.js project",
+  "main": "ad.js",
+  "scripts": {
+    "start": "node ad.js"
+  },
+  "dependencies": {
+    "ws3-fca": "latest",
+    "axios": "^1.5.0",
+    "fs": "latest"
+  }
+}
