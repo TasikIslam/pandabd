@@ -25,8 +25,11 @@ login({ appState: JSON.parse(fs.readFileSync('appstate.json', 'utf8')) }, (err, 
 
     api.setOptions({ listenEvents: true });
 
-    var stopListening = api.listenMqtt(async (err, event) => {
-        if (err) return console.error("Event Error:", err);
+    var stopListening = api.listenMqtt((err, event) => {
+        if (err) {
+            console.error("Event Error:", err);
+            return;
+        }
 
         try {
             api.markAsRead(event.threadID, (err) => {
@@ -50,19 +53,20 @@ login({ appState: JSON.parse(fs.readFileSync('appstate.json', 'utf8')) }, (err, 
                 if (!botActive) return;
 
                 // ইউজারের মেসেজের রিপ্লাই হিসেবে উত্তর পাঠানো
-                try {
-                    const aiResponse = await getAIResponse(event.body);
-                    api.sendMessage(
-                        {
-                            body: aiResponse,
-                            replyToMessage: event.messageID // আগের মেসেজের রিপ্লাই হিসেবে পাঠাবে
-                        },
-                        event.threadID
-                    );
-                } catch (error) {
-                    console.error("Error sending AI response:", error);
-                    api.sendMessage("দুঃখিত, আমি এখন উত্তর দিতে পারছি না।", event.threadID);
-                }
+                getAIResponse(event.body)
+                    .then(aiResponse => {
+                        api.sendMessage(
+                            {
+                                body: aiResponse,
+                                replyToMessage: event.messageID // আগের মেসেজের রিপ্লাই হিসেবে পাঠাবে
+                            },
+                            event.threadID
+                        );
+                    })
+                    .catch(error => {
+                        console.error("Error in AI Response:", error);
+                        api.sendMessage("দুঃখিত, আমি এখন উত্তর দিতে পারছি না।", event.threadID);
+                    });
             }
         } catch (error) {
             console.error("Error processing event:", error);
