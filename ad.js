@@ -60,17 +60,33 @@ login({ appState: JSON.parse(fs.readFileSync('appstate.json', 'utf8')) }, (err, 
                         let userMessage = event.body;
 
                         // যদি এটি কোনো রিপ্লাই মেসেজ হয়
-                        if (event.messageReply) {
-                            userMessage = event.messageReply.body;
-                        }
+                        if (event.messageReply && event.messageReply.messageID) {
+                            const replyMessageID = event.messageReply.messageID;
 
-                        // UID চেক
-                        const uidCheckResponse = await checkUID(userMessage);
-                        if (uidCheckResponse) {
-                            api.sendMessage(uidCheckResponse, event.threadID);
+                            // আসল রিপ্লাই মেসেজ খুঁজে বের করা
+                            api.getMessage(replyMessageID, async (err, replyMessage) => {
+                                if (!err && replyMessage) {
+                                    userMessage = replyMessage.body;
+                                }
+
+                                // UID চেক
+                                const uidCheckResponse = await checkUID(userMessage);
+                                if (uidCheckResponse) {
+                                    api.sendMessage(uidCheckResponse, event.threadID);
+                                } else {
+                                    const aiResponse = await getAIResponse(userMessage);
+                                    api.sendMessage(aiResponse, event.threadID);
+                                }
+                            });
                         } else {
-                            const aiResponse = await getAIResponse(userMessage);
-                            api.sendMessage(aiResponse, event.threadID);
+                            // সাধারণ মেসেজের জন্য
+                            const uidCheckResponse = await checkUID(userMessage);
+                            if (uidCheckResponse) {
+                                api.sendMessage(uidCheckResponse, event.threadID);
+                            } else {
+                                const aiResponse = await getAIResponse(userMessage);
+                                api.sendMessage(aiResponse, event.threadID);
+                            }
                         }
                     } catch (error) {
                         console.error("Error in AI Response:", error);
