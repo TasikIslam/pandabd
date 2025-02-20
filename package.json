@@ -4,12 +4,13 @@
   "description": "A simple Node.js project",
   "main": "ad.js",
   "scripts": {
-    "start": "node ad.js"
+    "start": "node keep_alive.js"
   },
   "dependencies": {
     "ws3-fca": "latest",
     "axios": "^1.5.0",
     "fs": "latest",
-    "npmlog": "latest"
+    "npmlog": "latest",
+    "express": "^4.18.2"
   }
 }
